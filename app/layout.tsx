@@ -35,13 +35,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* <SessionProvider session={session}> */}
       <body className={inter.className}>
         <link rel="icon" href="/icon.png" />
 
         <DrawerProvider>{children}</DrawerProvider>
       </body>
-      {/* </SessionProvider> */}
     </html>
   )
 }
