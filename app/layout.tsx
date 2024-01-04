@@ -14,6 +14,8 @@ import { SessionProviderProps } from "next-auth/react"
 import { useState } from "react"
 import { DrawerProvider } from "./context/drawer-provider"
 import Head from "next/head"
+import TopNavBar from "./components/top-nav"
+import DrawerNav from "./components/drawer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -37,8 +39,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <link rel="icon" href="/icon.png" />
+        <DrawerProvider>
+          <TopNavBar />
+          <DrawerNav />
 
-        <DrawerProvider>{children}</DrawerProvider>
+          {children}
+        </DrawerProvider>
       </body>
     </html>
   )

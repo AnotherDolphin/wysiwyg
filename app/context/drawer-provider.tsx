@@ -19,6 +19,8 @@ export const DrawerProvider = ({ children }: { children: React.ReactNode }) => {
 
   const toggleDrawer =
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+      console.log("toggleDrawer")
+
       if (
         event.type === "keydown" &&
         ((event as React.KeyboardEvent).key === "Tab" ||

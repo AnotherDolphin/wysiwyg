@@ -15,7 +15,7 @@ export default function DrawerNav() {
   
   return (
     <div>
-      <Button onClick={toggleDrawer(true)}>Open Drawer</Button>
+      {/* <Button onClick={toggleDrawer(true)}>Open Drawer</Button> */}
       <Drawer
         variant="temporary"
         anchor="left"
