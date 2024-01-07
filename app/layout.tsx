@@ -16,6 +16,7 @@ import { DrawerProvider } from "./context/drawer-provider"
 import Head from "next/head"
 import TopNavBar from "./components/top-nav"
 import DrawerNav from "./components/drawer"
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -38,13 +39,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <link rel="icon" href="/icon.png" />
-        <DrawerProvider>
-          <TopNavBar />
-          <DrawerNav />
-
-          {children}
-        </DrawerProvider>
+        {/* <AppRouterCacheProvider options={{ enableCssLayer: true }}> */}
+          <link rel="icon" href="/icon.png" />
+          <DrawerProvider>
+            <TopNavBar />
+            <DrawerNav />
+            {children}
+          </DrawerProvider>
+        {/* </AppRouterCacheProvider> */}
       </body>
     </html>
   )
