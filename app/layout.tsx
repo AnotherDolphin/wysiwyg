@@ -38,15 +38,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} min-h-screen`}>
         {/* <AppRouterCacheProvider options={{ enableCssLayer: true }}> */}
-          <link rel="icon" href="/icon.png" />
+        <link rel="icon" href="/icon.png" />
+        <main className="flex min-h-screen flex-col bg-red-200 items-center justify-between ">
           <DrawerProvider>
             <TopNavBar />
             <DrawerNav />
             {children}
           </DrawerProvider>
-        {/* </AppRouterCacheProvider> */}
+          {/* </AppRouterCacheProvider> */}
+        </main>
       </body>
     </html>
   )

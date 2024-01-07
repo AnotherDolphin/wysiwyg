@@ -4,11 +4,9 @@ import DrawerNav from "./components/drawer"
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col bg-red-200 items-center justify-between p-24">
-      <div className="bg-blue-200 w-full">
+      <div className="bg-white w-content flex flex-col flex-1">
         <h1>Your Page Title</h1>
         <EditorPage />
       </div>
-    </main>
   )
 }
