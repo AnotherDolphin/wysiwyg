@@ -1,6 +1,21 @@
-import db from "../db-conn"
+import { NextRequest } from "next/server"
+import db from "../../db-conn"
+import { ObjectId } from "mongodb"
 
-export async function GET(request: Request) {}
+export async function GET(req: NextRequest) {
+  // if there's an id in the query string, return the article with that id
+  // otherwise, return all articles
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+
+  if (id) {
+    const article = await db.collection("articles").findOne({ _id: new ObjectId(id) })
+    return new Response(JSON.stringify(article), { status: 200 })
+  }
+
+  const articles = await db.collection("articles").find().toArray()
+  return Response.json(articles, { status: 200 })
+}
 
 export async function HEAD(request: Request) {}
 
@@ -11,7 +26,12 @@ export async function POST(request: Request) {
   const articlesCollection = db.collection("articles")
 
   // Create a new document to insert into the collection
-  const article = { title, content }
+  const article = {
+    title,
+    content,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
 
   // Insert the article document into the collection
   await articlesCollection.insertOne(article)
