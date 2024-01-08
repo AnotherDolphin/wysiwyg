@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import {
   Button,
@@ -9,10 +9,11 @@ import {
 } from "@mui/material"
 import React, { useContext, useState } from "react"
 import { DrawerContext } from "../context/drawer-provider"
+import Link from "next/link"
 
 export default function DrawerNav() {
-    const { drawer, toggleDrawer } = useContext(DrawerContext)
-  
+  const { drawer, toggleDrawer } = useContext(DrawerContext)
+
   return (
     <div>
       {/* <Button onClick={toggleDrawer(true)}>Open Drawer</Button> */}
@@ -27,10 +28,20 @@ export default function DrawerNav() {
       >
         <List>
           <ListItemButton>
-            <ListItemText primary="Menu Item 1" />
+            <Link href="/">
+              <ListItemText primary="Home" />
+            </Link>
           </ListItemButton>
           <ListItemButton>
-            <ListItemText primary="Menu Item 2" />
+            <Link href="/articles">
+              <ListItemText primary="Articles" />
+            </Link>
+          </ListItemButton>
+          <ListItemButton>
+            <ListItemText primary="Explore" />
+          </ListItemButton>
+          <ListItemButton>
+            <ListItemText primary="Publish" />
           </ListItemButton>
           {/* Add more menu items as needed */}
         </List>

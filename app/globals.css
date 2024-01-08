@@ -39,3 +39,9 @@ body {
   line-height: 1.5;
   padding: 1rem;
 }
+
+.reference {
+  color: inherit; /* Reset color */
+  text-decoration: none; /* Remove underline */
+  cursor: inherit; /* Reset cursor */
+}
