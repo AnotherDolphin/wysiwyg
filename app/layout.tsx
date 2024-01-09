@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   title: "Wikiwyg",
   description:
-    "Author, Edit, and Publish your informational content with ease. Wikiwyg is a WYSIWYG editor for the web.",
+    "Author, Edit, and Publish informational articles with ease. Wikiwyg is a WYSIWYG editor for the web.",
 }
 
 export default function RootLayout({
@@ -41,7 +41,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen`}>
         {/* <AppRouterCacheProvider options={{ enableCssLayer: true }}> */}
         <link rel="icon" href="/icon.png" />
-        <main className="flex min-h-screen flex-col bg-red-200 items-center justify-between">
+        <main className="flex min-h-screen flex-col items-center justify-between bg-gray-100">
           <DrawerProvider>
             <TopNavBar />
             <div className="h-4"></div>

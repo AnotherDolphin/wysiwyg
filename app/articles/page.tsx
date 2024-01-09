@@ -1,3 +1,6 @@
+import { Typography } from "@mui/material"
+import { FC } from "react"
+
 interface Article {
   id: number
   title: string
@@ -24,15 +27,48 @@ export default async function Page() {
 
   return (
     <div className="bg-white w-content flex flex-col flex-1">
-      <h1>Articles</h1>
-      <ul>
+      <Typography variant="h2" component="h1"  gutterBottom className="text-[#0294a1]">
+        Articles
+      </Typography>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {data.map((article) => (
-          <li key={article.id}>
-            <h2>{article.title}</h2>
-            <p>{article.content}</p>
-          </li>
+          <ArticleCard key={article.id} article={article} />
         ))}
-      </ul>
+      </div>
+    </div>
+  )
+}
+
+interface ArticleCardProps {
+  article: Article
+}
+
+const ArticleCard: FC<ArticleCardProps> = ({ article }) => {
+  // Find the first <p> tag in article.content
+  const firstParagraphMatch = article.content?.match(/<p>(.*?)<\/p>/)
+  const firstParagraph = firstParagraphMatch ? firstParagraphMatch[1] : ""
+
+  // Get the first 100 characters of the first paragraph
+  const previewText = firstParagraph.slice(0, 100)
+
+  // Add an ellipsis if the text was truncated
+  const displayText =
+    firstParagraph.length > 100 ? `${previewText}...` : previewText
+
+  // Format the last update time
+  const date = new Date(article.updatedAt)
+    .toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "2-digit",
+    })
+    .replace(",", "")
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-4 m-2 flex flex-col gap-4">
+      <h2 className="text-xl font-bold">{article.title ?? "Title"}</h2>
+      <p className="text-gray-600">{displayText}</p>
+      <p className="text-sm text-gray-500">Last updated: {date}</p>
     </div>
   )
 }

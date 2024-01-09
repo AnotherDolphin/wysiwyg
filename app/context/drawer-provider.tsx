@@ -6,12 +6,16 @@ type DrawerContextType = {
   toggleDrawer: (
     open: boolean
   ) => (event: React.KeyboardEvent | React.MouseEvent) => void
+  openDrawer: () => void
+  closeDrawer: () => void
 }
 
 export const DrawerContext = createContext<DrawerContextType>({
   drawer: false,
   toggleDrawer:
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {},
+  openDrawer: () => {},
+  closeDrawer: () => {},
 })
 
 export const DrawerProvider = ({ children }: { children: React.ReactNode }) => {
@@ -19,8 +23,6 @@ export const DrawerProvider = ({ children }: { children: React.ReactNode }) => {
 
   const toggleDrawer =
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-      console.log("toggleDrawer")
-
       if (
         event.type === "keydown" &&
         ((event as React.KeyboardEvent).key === "Tab" ||
@@ -28,12 +30,23 @@ export const DrawerProvider = ({ children }: { children: React.ReactNode }) => {
       ) {
         return
       }
+
       setDrawer(open)
     }
+
+  const openDrawer = () => {
+    setDrawer(true)
+  }
+
+  const closeDrawer = () => {
+    setDrawer(false)
+  }
 
   const drawerContextValue: DrawerContextType = {
     drawer,
     toggleDrawer,
+    openDrawer,
+    closeDrawer,
   }
 
   return (

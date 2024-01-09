@@ -7,12 +7,19 @@ import {
   ListItemText,
   Drawer,
 } from "@mui/material"
-import React, { useContext, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { DrawerContext } from "../context/drawer-provider"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export default function DrawerNav() {
-  const { drawer, toggleDrawer } = useContext(DrawerContext)
+  const { drawer, toggleDrawer, closeDrawer } = useContext(DrawerContext)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    console.log("pathname", pathname)
+    closeDrawer()
+  }, [pathname])
 
   return (
     <div>
@@ -25,23 +32,40 @@ export default function DrawerNav() {
         ModalProps={{
           keepMounted: true, // Better open performance on mobile.
         }}
+        sx={{
+          "& .MuiDrawer-paper": { boxSizing: "border-box", width: "200px" },
+        }}
       >
+        <img
+          src={"/icon.png"}
+          alt="Icon"
+          className="m-auto rounded-lg my-8"
+          width={60}
+          height={60}
+          //   onClick={() => router.push("/")}
+        />
         <List>
-          <ListItemButton>
-            <Link href="/">
+          <Link href="/">
+            <ListItemButton>
               <ListItemText primary="Home" />
-            </Link>
-          </ListItemButton>
-          <ListItemButton>
-            <Link href="/articles">
+            </ListItemButton>
+          </Link>
+          <Link href="/articles">
+            <ListItemButton>
               <ListItemText primary="Articles" />
-            </Link>
-          </ListItemButton>
+            </ListItemButton>
+          </Link>
           <ListItemButton>
             <ListItemText primary="Explore" />
           </ListItemButton>
+          <Link href="/articles/author">
+            <ListItemButton>
+              <ListItemText primary="Author" />
+            </ListItemButton>
+          </Link>
+          <div className="h-[50vh]"></div>
           <ListItemButton>
-            <ListItemText primary="Publish" />
+            <ListItemText primary="Login" />
           </ListItemButton>
           {/* Add more menu items as needed */}
         </List>

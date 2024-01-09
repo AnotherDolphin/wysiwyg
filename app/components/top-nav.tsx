@@ -43,8 +43,8 @@ export default function TopNavBar() {
           style={{ margin: "10px", height: 60, borderRadius: 10 }}
           onClick={() => router.push("/")}
         />
-        <Typography variant="h6" style={{ flexGrow: 1 }}>
-          WikiWyg
+        <Typography variant="h6" style={{ flexGrow: 1, fontFamily: "cursive" }}>
+            WikiWyg
         </Typography>
         {token && (
           <IconButton
