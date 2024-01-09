@@ -8,6 +8,7 @@ import React, {
   forwardRef,
   useEffect,
   MutableRefObject,
+  useRef,
 } from "react"
 import dynamic from "next/dynamic"
 import { ReactQuillProps } from "react-quill"
@@ -16,13 +17,30 @@ import { TextField } from "@mui/material"
 import { StringMap } from "quill"
 import LinkBlot from "./utils/link-bolt"
 import MenuBook from "@mui/icons-material/MenuBook"
+import Footnotes from "./components/article/footnotes"
 
 let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
 SuperBlot.blotName = "super"
 SuperBlot.tagName = "sup"
-Quill.register("formats/super", SuperBlot)
-Quill.register("formats/link", LinkBlot)
+Quill.register("formats/ref-super", SuperBlot)
+Quill.register("formats/ref-link", LinkBlot)
+
+const defaultQuillFormats = [
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "blockquote",
+  "cite",
+  "list",
+  "bullet",
+  "indent",
+  "link",
+  "image",
+  "super",
+  "header",
+]
 
 type SpecificQuillProps = {
   [K in keyof ReactQuillProps]: ReactQuillProps[K]
@@ -66,11 +84,13 @@ const modules: StringMap = {
 
 const EditorPage = () => {
   const [value, setValue] = useState("")
-  const quillRef = React.useRef<ReactQuill>()
+  const quillRef = useRef<ReactQuill>()
   const [title, setTitle] = useState("")
   const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
     []
   )
+  const footnotesRef = useRef(footnotes)
+  footnotesRef.current = footnotes
 
   useEffect(() => {
     const init = (quill: Object) => {
@@ -106,20 +126,49 @@ const EditorPage = () => {
   }
 
   const onChange = (value: string) => {
+    console.log(value)
+
     setValue(value)
   }
 
   console.log(value)
 
+  const handleDeleteFootnote = (index: number) => {
+    setFootnotes((prevFootnotes) => {
+      const updatedFootnotes = prevFootnotes.filter((_, i) => i !== index)
+
+      // Get the Quill editor instance
+      const editor = quillRef.current?.getEditor()
+
+      // Get the contents of the editor
+      const contents = editor?.getContents()
+
+      console.log(contents)
+
+      // Find the superscript text
+      // const superscriptId = `supertext-${index + 1}`
+      const superscriptDelta = contents?.ops?.find((op) =>
+        op.insert?.includes(`[${index + 1}]`)
+      )
+
+      // If the superscript text was found, remove it
+      if (superscriptDelta) {
+        const superscriptIndex = contents?.ops?.indexOf(superscriptDelta)
+        editor?.deleteText(superscriptIndex ?? 0, 3) // Delete the superscript text
+      }
+
+      return updatedFootnotes
+    })
+  }
+
   const handleCite = () => {
-    // Logic to insert footnote/citation marker and text at the cursor position
     const cursorPosition = quillRef?.current?.getEditor()?.getLength() || 0 // Get cursor position
 
     const footnoteLink = prompt("Enter footnote source link:")
     if (!footnoteLink) return
-    const sourceIndex = footnotes.length + 1 // Generate source index
+    const sourceIndex = footnotesRef.current.length + 1 // Generate source index
     const updatedFootnotes = [
-      ...footnotes,
+      ...footnotesRef.current,
       { index: sourceIndex, link: footnoteLink },
     ]
     setFootnotes(updatedFootnotes)
@@ -131,13 +180,13 @@ const EditorPage = () => {
     editor?.formatText(cursorPosition - 1, 3, "super", true)
     editor?.formatText(cursorPosition - 1, 3, "link", {
       href: `#footnote-${sourceIndex}`,
+      id: `supertext-${sourceIndex}`,
     })
 
     editor?.insertText(cursorPosition + 2, " ")
     editor?.formatText(cursorPosition + 2, 1, "super", false)
     editor?.formatText(cursorPosition + 2, 1, "link", false)
   }
-  modules.toolbar.handlers.cite = handleCite
 
   return (
     <div className="flex flex-col flex-1">
@@ -179,83 +228,18 @@ const EditorPage = () => {
         }}
         // className="text-2xl font-bold border-0 active:border-0 focus:border-0"
       />
-
       <DynamicRQ
         forwardedRef={quillRef}
         className="flex flex-col flex-1"
         value={value}
         onChange={onChange}
         modules={modules}
-        formats={["super", "link"]}
+        formats={[...defaultQuillFormats, "ref-super", "ref-link"]}
       />
       <button onClick={handleSave}>Save</button>
-      <div className="flex flex-col my-2 p-2">
-        <div className="flex items-center gap-2">
-          <MenuBook /> <h1 className="text-lg">References</h1>
-        </div>
-        {footnotes.map((footnote) => (
-          <div id={`footnote-${footnote.index}`}>
-            [{footnote.index}]{" "}
-            <a className="text-blue-700" href={footnote.link}>
-              {" "}
-              {footnote.link}
-            </a>
-          </div>
-        ))}
-      </div>
+      <Footnotes footnotes={footnotes} onDelete={handleDeleteFootnote} />{" "}
     </div>
   )
 }
-
-// const QuillEditor = forwardRef(
-//   (
-//     props: {
-//       value: string
-//       setValue: (value: string) => void
-//     },
-//     ref
-//   ) => {
-//     const ReactQuill = useMemo(
-//       () => dynamic(() => import("react-quill"), { ssr: false }),
-//       []
-//     )
-//     const { value, setValue } = props
-//     const handleCite = () => {
-//       // Logic to insert footnote/citation marker and text at the cursor position
-//       const cursorPosition = quillRef?.getEditor()?.getLength() || 0 // Get cursor position
-//       quillRef
-//         ?.getEditor()
-//         ?.insertText(cursorPosition, "[^1] Your footnote text here") // Insert the marker and text
-//     }
-
-//     return (
-//       <ReactQuill
-//         theme="snow"
-//         value={value}
-//         onChange={setValue}
-//         ref={ref}
-//         modules={{
-//           toolbar: {
-//             container: [
-//               [{ header: [1, 2, false] }],
-//               ["bold", "italic", "underline", "strike", "blockquote", "cite"], // Include the 'cite' button
-//               [
-//                 { list: "ordered" },
-//                 { list: "bullet" },
-//                 { indent: "-1" },
-//                 { indent: "+1" },
-//               ],
-//               ["link", "image"],
-//               ["clean"],
-//             ],
-//             handlers: {
-//               cite: handleCite, // Assign the handler for the 'cite' button
-//             },
-//           },
-//         }}
-//       />
-//     )
-//   }
-// )
 
 export default EditorPage

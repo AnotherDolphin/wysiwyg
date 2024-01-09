@@ -4,6 +4,7 @@ let Inline = Quill.import("blots/inline")
 
 interface Params {
   href: string
+  id: string
 }
 
 class LinkBlot extends Inline {
@@ -11,6 +12,7 @@ class LinkBlot extends Inline {
     let node = super.create() as HTMLElement 
     console.log("value", value)
     node.contentEditable = "false"
+    node.id = value.id
 
     // Sanitize url value if desired
     node.setAttribute("href", value.href)
