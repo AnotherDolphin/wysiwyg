@@ -11,15 +11,18 @@ import React, {
 } from "react"
 import dynamic from "next/dynamic"
 import { ReactQuillProps } from "react-quill"
-import ReactQuill, { Quill } from 'react-quill'; // ES6
+import ReactQuill, { Quill } from "react-quill"
 import { TextField } from "@mui/material"
 import { StringMap } from "quill"
+import LinkBlot from "./utils/link-bolt"
+import MenuBook from "@mui/icons-material/MenuBook"
 
-let Inline = Quill.import('blots/inline');
+let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
-SuperBlot.blotName = 'super';
-SuperBlot.tagName = 'sup';
-Quill.register('formats/super', SuperBlot);
+SuperBlot.blotName = "super"
+SuperBlot.tagName = "sup"
+Quill.register("formats/super", SuperBlot)
+Quill.register("formats/link", LinkBlot)
 
 type SpecificQuillProps = {
   [K in keyof ReactQuillProps]: ReactQuillProps[K]
@@ -65,7 +68,9 @@ const EditorPage = () => {
   const [value, setValue] = useState("")
   const quillRef = React.useRef<ReactQuill>()
   const [title, setTitle] = useState("")
-  const [footnotes, setFootnotes] = useState<{ index: number; link: string; }[]>([]);
+  const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
+    []
+  )
 
   useEffect(() => {
     const init = (quill: Object) => {
@@ -104,11 +109,12 @@ const EditorPage = () => {
     setValue(value)
   }
 
-  console.log(value);
-  
+  console.log(value)
 
   const handleCite = () => {
     // Logic to insert footnote/citation marker and text at the cursor position
+    const cursorPosition = quillRef?.current?.getEditor()?.getLength() || 0 // Get cursor position
+
     const footnoteLink = prompt("Enter footnote source link:")
     if (!footnoteLink) return
     const sourceIndex = footnotes.length + 1 // Generate source index
@@ -117,24 +123,20 @@ const EditorPage = () => {
       { index: sourceIndex, link: footnoteLink },
     ]
     setFootnotes(updatedFootnotes)
-    // Insert formatted content for the footnote
-    const cursorPosition = quillRef.current?.getEditor()?.getLength() || 0;
-    const footnoteText = `<sup><a href="#footnote-${sourceIndex}" classname="reference">[${sourceIndex}]</a></sup>`;
-    quillRef.current?.getEditor()?.insertText(cursorPosition, 'Test for super');
-    quillRef.current?.getEditor()?.formatText(cursorPosition, footnoteText.length, 'super', true);
-    
-    // quillRef.current?.getEditor()?.insertText(cursorPosition, footnoteText) // Insert the marker and text
-  };
 
-  // // Custom Quill format for footnotes
-  // Quill.Quill.register('formats/customFootnote', {
-  //   // Define the format here (for example, using a custom CSS class)
-  //   customClass: 'custom-footnote',
-  //   render: function () {
-  //     return '[^]';
-  //   },
-  // });
+    let editor = quillRef.current?.getEditor()
 
+    editor?.insertText(cursorPosition - 1, `[${sourceIndex.toString()}]`) // Insert the marker and text
+
+    editor?.formatText(cursorPosition - 1, 3, "super", true)
+    editor?.formatText(cursorPosition - 1, 3, "link", {
+      href: `#footnote-${sourceIndex}`,
+    })
+
+    editor?.insertText(cursorPosition + 2, " ")
+    editor?.formatText(cursorPosition + 2, 1, "super", false)
+    editor?.formatText(cursorPosition + 2, 1, "link", false)
+  }
   modules.toolbar.handlers.cite = handleCite
 
   return (
@@ -184,9 +186,23 @@ const EditorPage = () => {
         value={value}
         onChange={onChange}
         modules={modules}
-        formats={['super']}
+        formats={["super", "link"]}
       />
       <button onClick={handleSave}>Save</button>
+      <div className="flex flex-col my-2 p-2">
+        <div className="flex items-center gap-2">
+          <MenuBook /> <h1 className="text-lg">References</h1>
+        </div>
+        {footnotes.map((footnote) => (
+          <div id={`footnote-${footnote.index}`}>
+            [{footnote.index}]{" "}
+            <a className="text-blue-700" href={footnote.link}>
+              {" "}
+              {footnote.link}
+            </a>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

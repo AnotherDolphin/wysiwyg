@@ -2,14 +2,29 @@ import { Quill } from "react-quill"
 
 let Inline = Quill.import("blots/inline")
 
+interface Params {
+  href: string
+}
+
 class LinkBlot extends Inline {
-  static create(value: any) {
-    let node = super.create()
+  static create(value: Params) {
+    let node = super.create() as HTMLElement 
+    console.log("value", value)
+    node.contentEditable = "false"
+
     // Sanitize url value if desired
-    node.setAttribute("href", value)
+    node.setAttribute("href", value.href)
     // Okay to set other non-format related attributes
     // These are invisible to Parchment so must be static
-    node.setAttribute("target", "_blank")
+    // node.setAttribute("target", "_blank")
+    node.classList.add("footnote-link")
+    
+    // delete node
+    // node.addEventListener("click", () => {
+    //   console.log("clicked")
+    //   node.remove()
+    // })
+
     return node
   }
 
@@ -22,7 +37,5 @@ class LinkBlot extends Inline {
 }
 LinkBlot.blotName = "link"
 LinkBlot.tagName = "a"
-
-Quill.register(LinkBlot)
 
 export default LinkBlot

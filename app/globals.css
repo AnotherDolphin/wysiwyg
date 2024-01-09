@@ -45,3 +45,7 @@ body {
   text-decoration: none; /* Remove underline */
   cursor: inherit; /* Reset cursor */
 }
+
+.footnote-link {
+  @apply no-underline !important;
+}
