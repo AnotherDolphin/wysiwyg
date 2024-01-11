@@ -1,8 +1,9 @@
 import { Typography } from "@mui/material"
+import Link from "next/link"
 import { FC } from "react"
 
-interface Article {
-  id: number
+export interface Article {
+  _id: number
   title: string
   content: string
   createdAt: Date
@@ -24,15 +25,19 @@ async function getArticles() {
 
 export default async function Page() {
   const data = await getArticles()
-
   return (
     <div className="bg-white w-content flex flex-col flex-1">
-      <Typography variant="h2" component="h1"  gutterBottom className="text-[#0294a1]">
+      <Typography
+        variant="h2"
+        component="h1"
+        gutterBottom
+        className="text-[#0294a1]"
+      >
         Articles
       </Typography>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {data.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <ArticleCard key={article._id} article={article} />
         ))}
       </div>
     </div>
@@ -65,10 +70,15 @@ const ArticleCard: FC<ArticleCardProps> = ({ article }) => {
     .replace(",", "")
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 m-2 flex flex-col gap-4">
+    <Link
+      href={`/articles/${article._id}`}
+      className="bg-white shadow-md rounded-lg p-4 m-2 flex flex-col gap-4"
+    >
+      {/* <div className=""> */}
       <h2 className="text-xl font-bold">{article.title ?? "Title"}</h2>
       <p className="text-gray-600">{displayText}</p>
       <p className="text-sm text-gray-500">Last updated: {date}</p>
-    </div>
+      {/* </div> */}
+    </Link>
   )
 }

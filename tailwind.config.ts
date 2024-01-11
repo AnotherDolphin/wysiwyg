@@ -19,5 +19,7 @@ const config: Config = {
     }
   },
   plugins: [],
+  // prefix: 'tw-',
+  important: true,
 }
 export default config

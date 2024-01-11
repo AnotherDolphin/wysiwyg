@@ -1,6 +1,7 @@
 "use client"
 
 import "quill/dist/quill.snow.css"
+import "react-quill/dist/quill.bubble.css"
 
 import React, {
   useState,
@@ -13,11 +14,12 @@ import React, {
 import dynamic from "next/dynamic"
 import { ReactQuillProps } from "react-quill"
 import ReactQuill, { Quill } from "react-quill"
-import { TextField } from "@mui/material"
+import { Button, TextField } from "@mui/material"
 import { StringMap } from "quill"
 import LinkBlot from "./utils/link-bolt"
 import MenuBook from "@mui/icons-material/MenuBook"
 import Footnotes from "./components/article/footnotes"
+import { Article } from "./articles/page"
 
 let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
@@ -53,9 +55,9 @@ interface QuillEditorProps extends SpecificQuillProps {
 const DynamicRQ = dynamic(
   async () => {
     const { default: RQ } = await import("react-quill")
-    return ({ forwardedRef, ...props }: QuillEditorProps) => (
-      <RQ ref={forwardedRef} {...props} />
-    )
+    return ({ forwardedRef, ...props }: QuillEditorProps) => {      
+      return <RQ ref={forwardedRef} {...props} />
+    }
   },
   {
     ssr: false,
@@ -82,8 +84,9 @@ const modules: StringMap = {
   },
 }
 
-const EditorPage = () => {
-  const [value, setValue] = useState("")
+const EditorPage = ({ article }: { article?: Article }) => {
+  const [readOnly, setReadOnly] = useState(article ? true : false)
+  const [value, setValue] = useState(article?.content ?? "")
   const quillRef = useRef<ReactQuill>()
   const [title, setTitle] = useState("")
   const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
@@ -190,6 +193,24 @@ const EditorPage = () => {
 
   return (
     <div className="flex flex-col flex-1">
+      <div className="flex w-full items-center justify-end mb-2">
+        <Button
+          className={`transition-colors ${
+            readOnly ? "bg-cyan-600 text-white" : "text-cyan-600"
+          }`}
+          onClick={() => setReadOnly(true)}
+        >
+          Read
+        </Button>
+        <Button
+          className={`transition-colors ${
+            readOnly ? "text-cyan-600" : "bg-cyan-600 text-white"
+          }`}
+          onClick={() => setReadOnly(false)}
+        >
+          Edit
+        </Button>
+      </div>
       <TextField
         type="text"
         name="title"
@@ -229,12 +250,15 @@ const EditorPage = () => {
         // className="text-2xl font-bold border-0 active:border-0 focus:border-0"
       />
       <DynamicRQ
+      key={readOnly ? "readOnly" : "editable"}
         forwardedRef={quillRef}
         className="flex flex-col flex-1"
         value={value}
         onChange={onChange}
         modules={modules}
         formats={[...defaultQuillFormats, "ref-super", "ref-link"]}
+        readOnly={readOnly}
+        theme={readOnly ? "bubble" : "snow"}
       />
       <button onClick={handleSave}>Save</button>
       <Footnotes footnotes={footnotes} onDelete={handleDeleteFootnote} />{" "}
