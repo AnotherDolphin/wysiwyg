@@ -23,7 +23,7 @@ import { Article } from "./articles/page"
 
 let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
-SuperBlot.blotName = "super"
+SuperBlot.blotName = "ref-super"
 SuperBlot.tagName = "sup"
 Quill.register("formats/ref-super", SuperBlot)
 Quill.register("formats/ref-link", LinkBlot)
@@ -42,6 +42,7 @@ const defaultQuillFormats = [
   "image",
   "super",
   "header",
+  "align",
 ]
 
 type SpecificQuillProps = {
@@ -55,7 +56,7 @@ interface QuillEditorProps extends SpecificQuillProps {
 const DynamicRQ = dynamic(
   async () => {
     const { default: RQ } = await import("react-quill")
-    return ({ forwardedRef, ...props }: QuillEditorProps) => {      
+    return ({ forwardedRef, ...props }: QuillEditorProps) => {
       return <RQ ref={forwardedRef} {...props} />
     }
   },
@@ -76,7 +77,14 @@ const modules: StringMap = {
         { indent: "+1" },
       ],
       ["link", "image"],
-      // ["clean"],
+      window.innerWidth < 768
+        ? [{ align: [] }]
+        : [
+            { align: "" },
+            { align: "center" },
+            { align: "right" },
+            { align: "justify" },
+          ], // ["clean"],
     ],
     handlers: {
       cite: () => console.log("cite"), // Assign the handler for the 'cite' button
@@ -113,10 +121,12 @@ const EditorPage = ({ article }: { article?: Article }) => {
   const handleSave = async () => {
     try {
       // Send a POST request to the API route with the article content
-      await fetch("/api/article", {
+      const token = localStorage.getItem("token")
+      await fetch("/api/articles", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ content: value, title }),
       })
@@ -130,11 +140,8 @@ const EditorPage = ({ article }: { article?: Article }) => {
 
   const onChange = (value: string) => {
     console.log(value)
-
     setValue(value)
   }
-
-  console.log(value)
 
   const handleDeleteFootnote = (index: number) => {
     setFootnotes((prevFootnotes) => {
@@ -145,8 +152,6 @@ const EditorPage = ({ article }: { article?: Article }) => {
 
       // Get the contents of the editor
       const contents = editor?.getContents()
-
-      console.log(contents)
 
       // Find the superscript text
       // const superscriptId = `supertext-${index + 1}`
@@ -180,15 +185,15 @@ const EditorPage = ({ article }: { article?: Article }) => {
 
     editor?.insertText(cursorPosition - 1, `[${sourceIndex.toString()}]`) // Insert the marker and text
 
-    editor?.formatText(cursorPosition - 1, 3, "super", true)
-    editor?.formatText(cursorPosition - 1, 3, "link", {
+    editor?.formatText(cursorPosition - 1, 3, "ref-super", true)
+    editor?.formatText(cursorPosition - 1, 3, "ref-link", {
       href: `#footnote-${sourceIndex}`,
       id: `supertext-${sourceIndex}`,
     })
 
     editor?.insertText(cursorPosition + 2, " ")
-    editor?.formatText(cursorPosition + 2, 1, "super", false)
-    editor?.formatText(cursorPosition + 2, 1, "link", false)
+    editor?.formatText(cursorPosition + 2, 1, "ref-super", false)
+    editor?.formatText(cursorPosition + 2, 1, "ref-link", false)
   }
 
   return (
@@ -250,7 +255,7 @@ const EditorPage = ({ article }: { article?: Article }) => {
         // className="text-2xl font-bold border-0 active:border-0 focus:border-0"
       />
       <DynamicRQ
-      key={readOnly ? "readOnly" : "editable"}
+        key={readOnly ? "readOnly" : "editable"}
         forwardedRef={quillRef}
         className="flex flex-col flex-1"
         value={value}

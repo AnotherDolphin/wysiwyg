@@ -37,7 +37,7 @@ class LinkBlot extends Inline {
     return node.getAttribute("href")
   }
 }
-LinkBlot.blotName = "link"
+LinkBlot.blotName = "ref-link"
 LinkBlot.tagName = "a"
 
 export default LinkBlot
