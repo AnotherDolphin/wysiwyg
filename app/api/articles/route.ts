@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
   }
 
   const articles = await db.collection("articles").find().toArray()
+  console.log("articles", articles);
+  
   return Response.json(articles, { status: 200 })
 }
 
@@ -28,15 +30,14 @@ export async function POST(request: Request) {
   if (!authHeader) return new Response(`Unauthorized`, { status: 401 })
   const token = authHeader.replace("Bearer ", "")
   const { email } = jwt.verify(token, "secret") as IUser
-  const { title, content } = await request.json()
+  const data = await request.json()
 
   // Get a reference to the articles collection in the database
   const articlesCollection = db.collection("articles")
 
   // Create a new document to insert into the collection
   const article = {
-    title,
-    content,
+    ...data,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     author: email,
@@ -45,12 +46,13 @@ export async function POST(request: Request) {
   // Insert the article document into the collection
   await articlesCollection.insertOne(article)
 
-  return new Response(`Article ${title} created with content ${content}`, {
+  return new Response(`Article ${data.title} created`, {
     status: 201,
   })
 }
 
 export async function PUT(request: Request) {
+  // todo: handle reference updates
   const authHeader = request.headers.get("Authorization")
   if (!authHeader) return new Response(`Unauthorized`, { status: 401 })
   const token = authHeader.replace("Bearer ", "")

@@ -2,6 +2,7 @@
 
 import "quill/dist/quill.snow.css"
 import "react-quill/dist/quill.bubble.css"
+import { revalidatePath } from "next/cache"
 
 import React, {
   useState,
@@ -20,6 +21,7 @@ import LinkBlot from "./utils/link-bolt"
 import MenuBook from "@mui/icons-material/MenuBook"
 import Footnotes from "./components/article/footnotes"
 import { Article } from "./articles/page"
+import revalidateArticles from "./utils/server-actions"
 
 let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
@@ -128,8 +130,20 @@ const EditorPage = ({ article }: { article?: Article }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: value, title }),
+        body: JSON.stringify({
+          content: value,
+          title,
+          references: footnotesRef.current.map((footnote) => {
+            return {
+              index: footnote.index,
+              link: footnote.link,
+            }
+          }),
+        }),
       })
+
+      // Invalidate the cache
+      revalidateArticles()
 
       // Optionally, you can redirect to the next route after saving
       // history.push("/next-route");
@@ -198,7 +212,7 @@ const EditorPage = ({ article }: { article?: Article }) => {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex w-full items-center justify-end mb-2">
+      <div className="flex w-full items-center justify-end">
         <Button
           className={`transition-colors ${
             readOnly ? "bg-cyan-600 text-white" : "text-cyan-600"
@@ -216,44 +230,6 @@ const EditorPage = ({ article }: { article?: Article }) => {
           Edit
         </Button>
       </div>
-      <TextField
-        type="text"
-        name="title"
-        id="title"
-        label="Title"
-        style={{ color: "white" }}
-        onChange={(e) => setTitle(e.target.value)}
-        sx={{
-          "& .MuiInputBase-root": {
-            color: "#111",
-            fontSize: "2rem",
-            // fontWeight: "semibold",
-            padding: "0.5rem",
-          },
-          // larger label
-          "& .MuiInputLabel-root": {
-            fontSize: "2rem",
-          },
-          "& label.Mui-focused": {
-            color: "green",
-          },
-          "& .MuiInput-underline:after": {
-            borderBottomColor: "green",
-          },
-          "& .MuiOutlinedInput-root": {
-            "& fieldset": {
-              borderColor: "none",
-            },
-            "&:hover fieldset": {
-              borderColor: "yellow",
-            },
-            "&.Mui-focused fieldset": {
-              borderColor: "black",
-            },
-          },
-        }}
-        // className="text-2xl font-bold border-0 active:border-0 focus:border-0"
-      />
       <DynamicRQ
         key={readOnly ? "readOnly" : "editable"}
         forwardedRef={quillRef}

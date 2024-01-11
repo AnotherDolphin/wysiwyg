@@ -9,6 +9,10 @@ export interface Article {
   createdAt: Date
   updatedAt: Date
   author: string
+  references: {
+    index: number
+    link: string
+  }[]
 }
 
 async function getArticles() {
