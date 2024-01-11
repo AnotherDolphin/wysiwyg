@@ -1,6 +1,11 @@
 import db from "../../db-conn"
 import bcrypt from "bcrypt"
 
+export interface IUser {
+  email: string
+  password: string
+}
+
 export async function POST(request: Request) {
   const { email, password } = await request.json()
 

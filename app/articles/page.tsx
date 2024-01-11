@@ -8,6 +8,7 @@ export interface Article {
   content: string
   createdAt: Date
   updatedAt: Date
+  author: string
 }
 
 async function getArticles() {
