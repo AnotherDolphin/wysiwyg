@@ -31,6 +31,13 @@ export async function POST(request: Request) {
   const token = authHeader.replace("Bearer ", "")
   const { email } = jwt.verify(token, "secret") as IUser
   const data = await request.json()
+  const articleHTML = data.content
+
+  // create title from the first h1 element in the article
+  const title = articleHTML.match(/<h1>(.*)<\/h1>/)?.[1] ?? "Untitled"
+  // if (!title) return new Response(`Article title is required`, { status: 400 })
+  // truncate the title
+  const truncatedTitle = title.length > 50 ? title.slice(0, 50) + "..." : title
 
   // Get a reference to the articles collection in the database
   const articlesCollection = db.collection("articles")
@@ -38,6 +45,7 @@ export async function POST(request: Request) {
   // Create a new document to insert into the collection
   const article = {
     ...data,
+    title: truncatedTitle,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     author: email,

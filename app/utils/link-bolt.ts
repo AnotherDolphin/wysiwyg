@@ -1,6 +1,7 @@
 import { Quill } from "react-quill"
 
 let Inline = Quill.import("blots/inline")
+let Embed = Quill.import("blots/embed")
 
 interface Params {
   href: string
@@ -27,7 +28,29 @@ class LinkBlot extends Inline {
     //   node.remove()
     // })
 
+    
+
     return node
+  }
+
+  attach() {
+    super.attach();
+    if (!this.mounted) {
+      this.mounted = true;
+      this.scroll.domNode.dispatchEvent(new CustomEvent('blot-mounted', {
+      bubbles: true,
+      detail: this
+    }))
+    }
+  }
+  
+  detach() {
+    this.mounted = false;
+    this.scroll.domNode.dispatchEvent(new CustomEvent('blot-unmounted', {
+      bubbles: true,
+      detail: this
+    }))
+    super.detach()
   }
 
   static formats(node: any) {
@@ -36,6 +59,18 @@ class LinkBlot extends Inline {
     // not need to check ourselves
     return node.getAttribute("href")
   }
+
+  onDOMRemove() {
+    console.log("removed")
+  }
+
+  onDelete() {
+    console.log("deleted")
+  }
+
+  // deleteAt(index: number, length: number) {
+  //   console.log("deleteAt", index, length)
+  // }
 }
 LinkBlot.blotName = "ref-link"
 LinkBlot.tagName = "a"

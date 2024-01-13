@@ -1,4 +1,4 @@
-import { MenuBook } from "@mui/icons-material"
+import { Book } from "@mui/icons-material"
 import { Delete } from "@mui/icons-material"
 import { Tooltip } from "@mui/material"
 
@@ -8,16 +8,16 @@ interface Footnote {
 }
 interface FootnotesProps {
   footnotes: Footnote[]
-  onDelete: (index: number) => void
+  onDelete?: (index: number) => void
 }
 
 const Footnotes = ({ footnotes, onDelete }: FootnotesProps) => (
   <div className="flex flex-col my-2 p-2">
     <div className="flex items-center gap-2">
-      <MenuBook /> <h1 className="text-lg">References</h1>
+      <Book /> <h1 className="text-lg">References</h1>
     </div>
     <div className="h-4"></div>
-    {footnotes.map((footnote, index) => (
+    {footnotes.map((footnote) => (
       <div
         id={`footnote-${footnote.index}`}
         key={footnote.index}
@@ -33,12 +33,14 @@ const Footnotes = ({ footnotes, onDelete }: FootnotesProps) => (
           {footnote.link}
         </a>
         <div className="w-4"></div>
-        <Tooltip title="Delete Reference">
-          <Delete
-            className="text-gray-400 cursor-pointer hover:text-red-500 transition duration-200 ease-in-out"
-            onClick={() => onDelete(index)}
-          />
-        </Tooltip>
+        {onDelete && (
+          <Tooltip title="Delete Reference">
+            <Delete
+              className="text-gray-400 cursor-pointer hover:text-red-500 transition duration-200 ease-in-out"
+              onClick={() => onDelete(footnote.index)}
+            />
+          </Tooltip>
+        )}
       </div>
     ))}
   </div>

@@ -55,9 +55,9 @@ export default function DrawerNav() {
               <ListItemText primary="Articles" />
             </ListItemButton>
           </Link>
-          <ListItemButton>
+          {/* <ListItemButton>
             <ListItemText primary="Explore" />
-          </ListItemButton>
+          </ListItemButton> */}
           <Link href="/articles/author">
             <ListItemButton>
               <ListItemText primary="Author" />

@@ -47,7 +47,7 @@ body {
 }
 
 .footnote-link {
-  @apply no-underline !important;
+  @apply no-underline text-blue-500 !important;
 }
 
 .ql-align-center img {

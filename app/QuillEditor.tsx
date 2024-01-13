@@ -15,10 +15,10 @@ import React, {
 import dynamic from "next/dynamic"
 import { ReactQuillProps } from "react-quill"
 import ReactQuill, { Quill } from "react-quill"
-import { Button, TextField } from "@mui/material"
+import { Button, Icon, TextField } from "@mui/material"
 import { StringMap } from "quill"
 import LinkBlot from "./utils/link-bolt"
-import MenuBook from "@mui/icons-material/MenuBook"
+import { MenuBook, Edit, Publish } from "@mui/icons-material"
 import Footnotes from "./components/article/footnotes"
 import { Article } from "./articles/page"
 import revalidateArticles from "./utils/server-actions"
@@ -100,7 +100,7 @@ const EditorPage = ({ article }: { article?: Article }) => {
   const quillRef = useRef<ReactQuill>()
   const [title, setTitle] = useState("")
   const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
-    []
+    article?.references ?? []
   )
   const footnotesRef = useRef(footnotes)
   footnotesRef.current = footnotes
@@ -111,6 +111,36 @@ const EditorPage = ({ article }: { article?: Article }) => {
     }
     const check = () => {
       if (quillRef.current) {
+        const editorEl = quillRef.current.getEditor().root
+        quillRef.current
+          .getEditor()
+          .on("text-change", function (_, __, source) {
+            if (source !== "user") return
+            editorEl
+              .querySelectorAll(`[href="undefined"], [id="undefined"]`)
+              ?.forEach((el) => {
+                console.log(el)
+                el.remove()
+              })
+          })
+
+        // handle superscript deletion to remove the footnote
+        editorEl.addEventListener("blot-unmounted", (e: CustomEventInit) => {
+          const index = parseInt(e.detail.attributes.domNode.id.split("-")[1])
+          handleDeleteSuperscript(index)
+        })
+
+        editorEl.addEventListener("blot-mounted", (e: CustomEventInit) => {
+          const index = parseInt(e.detail.attributes.domNode.id.split("-")[1])
+          const link = e.detail.attributes.domNode.href
+
+          if (!index || !link) return
+          const updatedFootnotes = [
+            ...footnotesRef.current,
+            { index, link },
+          ].sort((a, b) => a.index - b.index)
+        })
+
         init(quillRef.current)
         return
       }
@@ -153,32 +183,20 @@ const EditorPage = ({ article }: { article?: Article }) => {
   }
 
   const onChange = (value: string) => {
-    console.log(value)
     setValue(value)
+  }
+
+  const handleDeleteSuperscript = (index: number) => {
+    setFootnotes((prevFootnotes) =>
+      prevFootnotes.filter((x) => x.index !== index)
+    )
   }
 
   const handleDeleteFootnote = (index: number) => {
     setFootnotes((prevFootnotes) => {
-      const updatedFootnotes = prevFootnotes.filter((_, i) => i !== index)
-
-      // Get the Quill editor instance
+      const updatedFootnotes = prevFootnotes.filter((x) => x.index !== index)
       const editor = quillRef.current?.getEditor()
-
-      // Get the contents of the editor
-      const contents = editor?.getContents()
-
-      // Find the superscript text
-      // const superscriptId = `supertext-${index + 1}`
-      const superscriptDelta = contents?.ops?.find((op) =>
-        op.insert?.includes(`[${index + 1}]`)
-      )
-
-      // If the superscript text was found, remove it
-      if (superscriptDelta) {
-        const superscriptIndex = contents?.ops?.indexOf(superscriptDelta)
-        editor?.deleteText(superscriptIndex ?? 0, 3) // Delete the superscript text
-      }
-
+      editor?.root?.querySelector(`#supertext-${index}`)?.remove()
       return updatedFootnotes
     })
   }
@@ -189,6 +207,8 @@ const EditorPage = ({ article }: { article?: Article }) => {
     const footnoteLink = prompt("Enter footnote source link:")
     if (!footnoteLink) return
     const sourceIndex = footnotesRef.current.length + 1 // Generate source index
+    console.log("sourceIndex", sourceIndex)
+
     const updatedFootnotes = [
       ...footnotesRef.current,
       { index: sourceIndex, link: footnoteLink },
@@ -212,22 +232,39 @@ const EditorPage = ({ article }: { article?: Article }) => {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex w-full items-center justify-end">
+      <div className="flex w-full items-center justify-end bg-gray-100 outline-slate-600">
+        <div className="bg-gray-200 rounded-t-lg overflow-hidden border border-gray-300 border-b-0 flex flex-nowrap">
+          <Button
+            className={`rounded-none px-4 ${
+              readOnly ? "bg-white text-black" : "text-gray-500"
+            }`}
+            style={{ textTransform: "none" }}
+            variant="text"
+            onClick={() => setReadOnly(true)}
+            startIcon={<MenuBook />}
+          >
+            {article ? "Read" : "Preview"}
+          </Button>
+          <Button
+            className={`rounded-none px-4 ${
+              readOnly ? "text-gray-500" : "bg-white text-black"
+            }`}
+            style={{ textTransform: "none" }}
+            onClick={() => setReadOnly(false)}
+            startIcon={<Edit />}
+          >
+            {article ? "Edit" : "Write"}
+          </Button>
+        </div>
+        <div className="w-8"></div>
         <Button
-          className={`transition-colors ${
-            readOnly ? "bg-cyan-600 text-white" : "text-cyan-600"
-          }`}
-          onClick={() => setReadOnly(true)}
+          onClick={handleSave}
+          variant="outlined"
+          className="bg-cyan-600 text-white hover:bg-cyan-700 transition duration-200 ease-in-out"
+          startIcon={<Publish />}
+          style={{ textTransform: "none" }}
         >
-          Read
-        </Button>
-        <Button
-          className={`transition-colors ${
-            readOnly ? "text-cyan-600" : "bg-cyan-600 text-white"
-          }`}
-          onClick={() => setReadOnly(false)}
-        >
-          Edit
+          {article ? "Save" : "Publish"}
         </Button>
       </div>
       <DynamicRQ
@@ -241,8 +278,11 @@ const EditorPage = ({ article }: { article?: Article }) => {
         readOnly={readOnly}
         theme={readOnly ? "bubble" : "snow"}
       />
-      <button onClick={handleSave}>Save</button>
-      <Footnotes footnotes={footnotes} onDelete={handleDeleteFootnote} />{" "}
+      {/* <button onClick={handleSave}>Save</button> */}
+      <Footnotes
+        footnotes={footnotes}
+        onDelete={readOnly ? undefined : handleDeleteFootnote}
+      />
     </div>
   )
 }

@@ -81,7 +81,7 @@ const ArticleCard: FC<ArticleCardProps> = ({ article }) => {
     >
       {/* <div className=""> */}
       <h2 className="text-xl font-bold">{article.title ?? "Title"}</h2>
-      <p className="text-gray-600">{displayText}</p>
+      <p className="text-gray-600 flex-1">{displayText}</p>
       <p className="text-sm text-gray-500">Last updated: {date}</p>
       {/* </div> */}
     </Link>
