@@ -13,6 +13,7 @@ import React, {
   useRef,
 } from "react"
 import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
 import { ReactQuillProps } from "react-quill"
 import ReactQuill, { Quill } from "react-quill"
 import { Button, Icon, TextField } from "@mui/material"
@@ -95,10 +96,10 @@ const modules: StringMap = {
 }
 
 const EditorPage = ({ article }: { article?: Article }) => {
+  const router = useRouter()
   const [readOnly, setReadOnly] = useState(article ? true : false)
   const [value, setValue] = useState(article?.content ?? "")
   const quillRef = useRef<ReactQuill>()
-  const [title, setTitle] = useState("")
   const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
     article?.references ?? []
   )
@@ -155,14 +156,14 @@ const EditorPage = ({ article }: { article?: Article }) => {
       // Send a POST request to the API route with the article content
       const token = localStorage.getItem("token")
       await fetch("/api/articles", {
-        method: "POST",
+        method: article ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          ...(article && { id: article._id }),
           content: value,
-          title,
           references: footnotesRef.current.map((footnote) => {
             return {
               index: footnote.index,
@@ -174,6 +175,8 @@ const EditorPage = ({ article }: { article?: Article }) => {
 
       // Invalidate the cache
       revalidateArticles()
+      // go back to the articles page
+      router.push("/articles")
 
       // Optionally, you can redirect to the next route after saving
       // history.push("/next-route");

@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
   }
 
   const articles = await db.collection("articles").find().toArray()
-  console.log("articles", articles);
   
   return Response.json(articles, { status: 200 })
 }
@@ -35,8 +34,6 @@ export async function POST(request: Request) {
 
   // create title from the first h1 element in the article
   const title = articleHTML.match(/<h1>(.*)<\/h1>/)?.[1] ?? "Untitled"
-  // if (!title) return new Response(`Article title is required`, { status: 400 })
-  // truncate the title
   const truncatedTitle = title.length > 50 ? title.slice(0, 50) + "..." : title
 
   // Get a reference to the articles collection in the database
@@ -67,9 +64,15 @@ export async function PUT(request: Request) {
   const { email } = jwt.verify(token, "secret") as IUser
   const { id, content } = await request.json()
 
+  const title = content.match(/<h1>(.*)<\/h1>/)?.[1] ?? "Untitled"
+  const truncatedTitle = title.length > 50 ? title.slice(0, 50) + "..." : title
+
   if (!id) return new Response(`Article id is required`, { status: 400 })
   if (!content)
     return new Response(`Article content is required`, { status: 400 })
+
+    console.log("id", id);
+    
 
   const article = await db
     .collection("articles")
@@ -82,6 +85,7 @@ export async function PUT(request: Request) {
 
   const updatedArticle = {
     ...article,
+    title: truncatedTitle,
     content,
     updatedAt: date,
   }

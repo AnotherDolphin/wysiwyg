@@ -1,6 +1,7 @@
 import { Typography } from "@mui/material"
 import Link from "next/link"
 import { FC } from "react"
+import revalidateArticles from "../utils/server-actions"
 
 export interface Article {
   _id: number
@@ -16,7 +17,11 @@ export interface Article {
 }
 
 async function getArticles() {
-  const res = await fetch("http://localhost:3000/api/articles")
+  const { signal } = new AbortController()
+  const res = await fetch("http://localhost:3000/api/articles", {
+    signal,
+  })
+
   // The return value is *not* serialized
   // You can return Date, Map, Set, etc.
 
@@ -29,7 +34,10 @@ async function getArticles() {
 }
 
 export default async function Page() {
+  revalidateArticles()
   const data = await getArticles()
+  // console.log(data);
+
   return (
     <div className="bg-white w-content flex flex-col flex-1">
       <Typography
