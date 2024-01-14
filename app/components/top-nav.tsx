@@ -6,6 +6,7 @@ import MenuIcon from "@mui/icons-material/Menu"
 import { DrawerContext } from "../context/drawer-provider"
 import { useRouter } from "next/navigation"
 import AccountCircleIcon from "@mui/icons-material/AccountCircle"
+import Link from "next/link"
 
 export default function TopNavBar() {
   const { drawer, toggleDrawer } = React.useContext(DrawerContext)
@@ -18,11 +19,11 @@ export default function TopNavBar() {
     if (storedToken) setToken(storedToken)
   }, [])
 
-    const handleIconClick = () => {
-        // localStorage.removeItem("token")
-        // setToken(null)
-        router.push("/auth/login")
-    }
+  const handleIconClick = () => {
+    // localStorage.removeItem("token")
+    // setToken(null)
+    router.push("/auth/login")
+  }
 
   return (
     <AppBar position="static" color="default">
@@ -37,15 +38,19 @@ export default function TopNavBar() {
           <MenuIcon />
         </IconButton>
 
-        <img
-          src={"/icon.png"}
-          alt="Icon"
-          style={{ margin: "10px", height: 60, borderRadius: 10 }}
-          onClick={() => router.push("/")}
-        />
-        <Typography variant="h6" style={{ flexGrow: 1, fontFamily: "cursive" }}>
+        <Link className="flex items-center flex-1" href="/">
+          <img
+            src={"/icon.png"}
+            alt="Icon"
+            style={{ margin: "10px", height: 60, borderRadius: 10 }}
+          />
+          <Typography
+            variant="h6"
+            style={{ flexGrow: 1, fontFamily: "cursive" }}
+          >
             WikiWyg
-        </Typography>
+          </Typography>
+        </Link>
         {token && (
           <IconButton
             color="inherit"

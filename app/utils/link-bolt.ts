@@ -6,17 +6,18 @@ let Embed = Quill.import("blots/embed")
 interface Params {
   href: string
   id: string
+  refurl: string
 }
 
 class LinkBlot extends Inline {
   static create(value: Params) {
-    let node = super.create() as HTMLElement 
-    console.log("value", value)
+    let node = super.create() as HTMLElement
     node.contentEditable = "false"
     node.id = value.id
 
     // Sanitize url value if desired
     node.setAttribute("href", value.href)
+    node.setAttribute("refurl", value.refurl)
     // Okay to set other non-format related attributes
     // These are invisible to Parchment so must be static
     // node.setAttribute("target", "_blank")
@@ -45,6 +46,7 @@ class LinkBlot extends Inline {
   }
   
   detach() {
+    // console.log("detached");
     this.mounted = false;
     this.scroll.domNode.dispatchEvent(new CustomEvent('blot-unmounted', {
       bubbles: true,
@@ -53,11 +55,17 @@ class LinkBlot extends Inline {
     super.detach()
   }
 
-  static formats(node: any) {
+  static formats(node: HTMLElement) {
+    // console.log('formats', node);
+    
     // We will only be called with a node already
     // determined to be a Link blot, so we do
     // not need to check ourselves
-    return node.getAttribute("href")
+    return {
+      href: node.getAttribute("href"),
+      id: node.id,
+      refurl: node.getAttribute("refurl"),
+    }
   }
 
   onDOMRemove() {

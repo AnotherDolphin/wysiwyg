@@ -19,10 +19,11 @@ import ReactQuill, { Quill } from "react-quill"
 import { Button, Icon, TextField } from "@mui/material"
 import { StringMap } from "quill"
 import LinkBlot from "./utils/link-bolt"
-import { MenuBook, Edit, Publish } from "@mui/icons-material"
+import { MenuBook, Edit, Publish, History } from "@mui/icons-material"
 import Footnotes from "./components/article/footnotes"
-import { Article } from "./articles/page"
+import { IArticle, IArticleWithHistory } from "./articles/page"
 import revalidateArticles from "./utils/server-actions"
+import HistoryButton from "./components/history-button"
 
 let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
@@ -90,15 +91,15 @@ const modules: StringMap = {
           ], // ["clean"],
     ],
     handlers: {
-      cite: () => console.log("cite"), // Assign the handler for the 'cite' button
+      cite: () => {}, // Assign the handler for the 'cite' button
     },
   },
 }
 
-const EditorPage = ({ article }: { article?: Article }) => {
+const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
   const router = useRouter()
   const [readOnly, setReadOnly] = useState(article ? true : false)
-  const [value, setValue] = useState(article?.content ?? "")
+  const [value, setValue] = useState(article ? article.content : "")
   const quillRef = useRef<ReactQuill>()
   const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
     article?.references ?? []
@@ -107,15 +108,14 @@ const EditorPage = ({ article }: { article?: Article }) => {
   footnotesRef.current = footnotes
 
   useEffect(() => {
-    const init = (quill: Object) => {
-      console.log(quill)
-    }
     const check = () => {
       if (quillRef.current) {
         const editorEl = quillRef.current.getEditor().root
         quillRef.current
           .getEditor()
-          .on("text-change", function (_, __, source) {
+          .on("text-change", function (x, __, source) {
+            console.log(source)
+
             if (source !== "user") return
             editorEl
               .querySelectorAll(`[href="undefined"], [id="undefined"]`)
@@ -132,24 +132,28 @@ const EditorPage = ({ article }: { article?: Article }) => {
         })
 
         editorEl.addEventListener("blot-mounted", (e: CustomEventInit) => {
-          const index = parseInt(e.detail.attributes.domNode.id.split("-")[1])
-          const link = e.detail.attributes.domNode.href
+          const refNode = e.detail.attributes.domNode
+          // console.log(refNode.href);
 
-          if (!index || !link) return
+          const index = parseInt(refNode.id.split("-")[1])
+          const footnoteLink = refNode.href
+          const refUrl = refNode.getAttribute("refurl")
+          if (!index && !footnoteLink) return
+          console.log(footnoteLink.refUrl)
+
           const updatedFootnotes = [
             ...footnotesRef.current,
-            { index, link },
+            { index, link: refUrl },
           ].sort((a, b) => a.index - b.index)
+          setFootnotes(updatedFootnotes)
         })
-
-        init(quillRef.current)
         return
       }
       setTimeout(check, 200)
     }
     check()
     modules.toolbar.handlers.cite = handleCite
-  }, [quillRef])
+  }, [quillRef, readOnly])
 
   const handleSave = async () => {
     try {
@@ -210,8 +214,6 @@ const EditorPage = ({ article }: { article?: Article }) => {
     const footnoteLink = prompt("Enter footnote source link:")
     if (!footnoteLink) return
     const sourceIndex = footnotesRef.current.length + 1 // Generate source index
-    console.log("sourceIndex", sourceIndex)
-
     const updatedFootnotes = [
       ...footnotesRef.current,
       { index: sourceIndex, link: footnoteLink },
@@ -226,6 +228,7 @@ const EditorPage = ({ article }: { article?: Article }) => {
     editor?.formatText(cursorPosition - 1, 3, "ref-link", {
       href: `#footnote-${sourceIndex}`,
       id: `supertext-${sourceIndex}`,
+      refurl: footnoteLink,
     })
 
     editor?.insertText(cursorPosition + 2, " ")
@@ -259,11 +262,13 @@ const EditorPage = ({ article }: { article?: Article }) => {
             {article ? "Edit" : "Write"}
           </Button>
         </div>
-        <div className="w-8"></div>
+        <div className="flex-1"></div>
+        {article && <HistoryButton {...article} />}{" "}
+        <div className="flex-1 md:flex-none md:w-8"></div>
         <Button
           onClick={handleSave}
           variant="outlined"
-          className="bg-cyan-600 text-white hover:bg-cyan-700 transition duration-200 ease-in-out"
+          className="bg-cyan-600 text-white hover:bg-cyan-700 hover:translate-y-1 transition duration-200 ease-in-out"
           startIcon={<Publish />}
           style={{ textTransform: "none" }}
         >

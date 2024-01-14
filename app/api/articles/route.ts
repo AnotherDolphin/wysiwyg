@@ -14,11 +14,23 @@ export async function GET(req: NextRequest) {
     const article = await db
       .collection("articles")
       .findOne({ _id: new ObjectId(id) })
-    return new Response(JSON.stringify(article), { status: 200 })
+
+    // get article history
+    const history = await db
+      .collection("history")
+      .find({ articleId: id })
+      .toArray()
+    return new Response(
+      JSON.stringify({
+        ...article,
+        history,
+      }),
+      { status: 200 }
+    )
   }
 
   const articles = await db.collection("articles").find().toArray()
-  
+
   return Response.json(articles, { status: 200 })
 }
 
@@ -71,8 +83,7 @@ export async function PUT(request: Request) {
   if (!content)
     return new Response(`Article content is required`, { status: 400 })
 
-    console.log("id", id);
-    
+  console.log("id", id)
 
   const article = await db
     .collection("articles")
