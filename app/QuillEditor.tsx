@@ -98,7 +98,7 @@ const modules: StringMap = {
   },
 }
 
-const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
+const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
   const router = useRouter()
   // router.replace('/',)
   // const router.
