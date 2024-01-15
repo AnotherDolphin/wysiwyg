@@ -1,7 +1,14 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { AppBar, Toolbar, Typography, IconButton } from "@mui/material"
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Popover,
+  Button,
+} from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import { DrawerContext } from "../context/drawer-provider"
 import { useRouter } from "next/navigation"
@@ -12,18 +19,57 @@ export default function TopNavBar() {
   const { drawer, toggleDrawer } = React.useContext(DrawerContext)
   const router = useRouter()
   const [token, setToken] = useState<null | string>(null)
+  const [user, setUser] = useState<null | string>(null)
+  const [anchorEl, setAnchorEl] = useState(null)
+
+  const handleAccountClick = (event: any) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleAccountClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleAuthButton = () => {
+    handleAccountClose()
+    if (token) {
+      localStorage.removeItem("token")
+      setUser(null)
+      setToken(null)
+    }
+    router.push("/auth/login")
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return
     const storedToken = localStorage.getItem("token")
-    if (storedToken) setToken(storedToken)
+    if (!storedToken) return
+    setToken(storedToken)
+
+    async function fetchUserEmail(token: string) {
+      const response = await fetch("http://localhost:3000/api/login", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        const message = `An error has occurred: ${response.status}`
+        throw new Error(message)
+      }
+
+      const data = await response.json()
+      return data.email
+    }
+
+    fetchUserEmail(storedToken)
+      .then((email) => setUser(email))
+      .catch((error) => console.error(error))
   }, [])
 
-  const handleIconClick = () => {
-    // localStorage.removeItem("token")
-    // setToken(null)
-    router.push("/auth/login")
-  }
+  const open = Boolean(anchorEl)
+  const id = open ? "simple-popover" : undefined
 
   return (
     <AppBar position="static" color="default">
@@ -51,15 +97,38 @@ export default function TopNavBar() {
             WikiWyg
           </Typography>
         </Link>
-        {token && (
+        <div className="flex-1"></div>
+        {user && (
+          <h6 className="text-gray-500 text-sm  hidden md:block">{user}</h6>
+        )}
           <IconButton
             color="inherit"
             aria-label="profile"
-            onClick={handleIconClick}
+            onClick={handleAccountClick}
           >
             <AccountCircleIcon />
           </IconButton>
-        )}
+        <Popover
+          id={id}
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleAccountClose}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "center",
+          }}
+        >
+          <Button onClick={handleAuthButton}
+          className="text-gray-500"
+          style={{textTransform: "none"}}
+          >
+            {token ? "Logout" : "Login"}
+          </Button>
+        </Popover>
       </Toolbar>
     </AppBar>
   )

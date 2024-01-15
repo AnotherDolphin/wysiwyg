@@ -17,7 +17,6 @@ export default function DrawerNav() {
   const pathname = usePathname()
 
   useEffect(() => {
-    console.log("pathname", pathname)
     closeDrawer()
   }, [pathname])
 
@@ -58,15 +57,15 @@ export default function DrawerNav() {
           {/* <ListItemButton>
             <ListItemText primary="Explore" />
           </ListItemButton> */}
-          <Link href="/articles/author">
+          <a href="/articles/author">
             <ListItemButton>
               <ListItemText primary="Author" />
             </ListItemButton>
-          </Link>
-          <div className="h-[50vh]"></div>
-          <ListItemButton>
+          </a>
+          {/* <div className="h-[50vh]"></div> */}
+          {/* <ListItemButton>
             <ListItemText primary="Login" />
-          </ListItemButton>
+          </ListItemButton> */}
           {/* Add more menu items as needed */}
         </List>
       </Drawer>

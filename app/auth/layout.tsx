@@ -20,7 +20,6 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
       <div
         className={`w-[clamp(300px,80vw,1200px)] flex flex-col items-center m-auto p-10 gap-4`}
       >
@@ -33,6 +32,5 @@ export default function AuthLayout({
         {/* </div> */}
         {children}
       </div>
-    </html>
   )
 }

@@ -11,19 +11,21 @@ import React, {
   useEffect,
   MutableRefObject,
   useRef,
+  useCallback,
 } from "react"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { ReactQuillProps } from "react-quill"
 import ReactQuill, { Quill } from "react-quill"
 import { Button, Icon, TextField } from "@mui/material"
 import { StringMap } from "quill"
 import LinkBlot from "./utils/link-bolt"
-import { MenuBook, Edit, Publish, History } from "@mui/icons-material"
+import { MenuBook, Edit, Publish, History, Book } from "@mui/icons-material"
 import Footnotes from "./components/article/footnotes"
 import { IArticle, IArticleWithHistory } from "./articles/page"
 import revalidateArticles from "./utils/server-actions"
 import HistoryButton from "./components/history-button"
+import Router from "next/router"
 
 let Inline = Quill.import("blots/inline")
 class SuperBlot extends Inline {}
@@ -98,6 +100,8 @@ const modules: StringMap = {
 
 const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
   const router = useRouter()
+  // router.replace('/',)
+  // const router.
   const [readOnly, setReadOnly] = useState(article ? true : false)
   const [value, setValue] = useState(article ? article.content : "")
   const quillRef = useRef<ReactQuill>()
@@ -139,7 +143,6 @@ const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
           const footnoteLink = refNode.href
           const refUrl = refNode.getAttribute("refurl")
           if (!index && !footnoteLink) return
-          console.log(footnoteLink.refUrl)
 
           const updatedFootnotes = [
             ...footnotesRef.current,
@@ -147,13 +150,18 @@ const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
           ].sort((a, b) => a.index - b.index)
           setFootnotes(updatedFootnotes)
         })
+        console.log("quillRef.current", quillRef.current)
+
+        modules.toolbar.handlers.cite = handleCite.bind(quillRef.current)
         return
       }
+      console.log("quillRef.current", quillRef.current)
+      modules.toolbar.handlers.cite = handleCite.bind(quillRef)
+
       setTimeout(check, 200)
     }
     check()
-    modules.toolbar.handlers.cite = handleCite
-  }, [quillRef, readOnly])
+  }, [quillRef, readOnly, quillRef.current])
 
   const handleSave = async () => {
     try {
@@ -209,11 +217,16 @@ const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
   }
 
   const handleCite = () => {
-    const cursorPosition = quillRef?.current?.getEditor()?.getLength() || 0 // Get cursor position
+    const lastPosition = quillRef?.current?.getEditor()?.getLength() || 0 // Get cursor position
+    const selection = quillRef?.current?.getEditor()?.getSelection()?.index // Get cursor position
+
+    const cursorPosition = selection ? selection + 1 : lastPosition
 
     const footnoteLink = prompt("Enter footnote source link:")
     if (!footnoteLink) return
-    const sourceIndex = footnotesRef.current.length + 1 // Generate source index
+    const sourceIndex = footnotesRef.current.reduce((max, footnote) => {
+      return footnote.index > max ? footnote.index : max;
+    }, 0) + 1
     const updatedFootnotes = [
       ...footnotesRef.current,
       { index: sourceIndex, link: footnoteLink },
@@ -237,56 +250,57 @@ const EditorPage = ({ article }: { article: IArticleWithHistory }) => {
   }
 
   return (
-    <div className="flex flex-col flex-1">
-      <div className="flex w-full items-center justify-end bg-gray-100 outline-slate-600">
-        <div className="bg-gray-200 rounded-t-lg overflow-hidden border border-gray-300 border-b-0 flex flex-nowrap">
+    <div>
+      <div className="flex flex-col flex-1 min-h-[80vh]">
+        <div className="flex w-full items-center justify-end bg-gray-100 outline-slate-600">
+          <div className="bg-gray-200 rounded-t-lg overflow-hidden border border-gray-300 border-b-0 flex flex-nowrap">
+            <Button
+              className={`rounded-none px-4 ${
+                readOnly ? "bg-white text-black" : "text-gray-500"
+              }`}
+              style={{ textTransform: "none" }}
+              variant="text"
+              onClick={() => setReadOnly(true)}
+              startIcon={<MenuBook />}
+            >
+              {article ? "Read" : "Preview"}
+            </Button>
+            <Button
+              className={`rounded-none px-4 ${
+                readOnly ? "text-gray-500" : "bg-white text-black"
+              }`}
+              style={{ textTransform: "none" }}
+              onClick={() => setReadOnly(false)}
+              startIcon={<Edit />}
+            >
+              {article ? "Edit" : "Write"}
+            </Button>
+          </div>
+          <div className="flex-1"></div>
+          {article && <HistoryButton {...article} />}{" "}
+          <div className="flex-1 md:flex-none md:w-8"></div>
           <Button
-            className={`rounded-none px-4 ${
-              readOnly ? "bg-white text-black" : "text-gray-500"
-            }`}
+            onClick={handleSave}
+            variant="outlined"
+            className="bg-cyan-600 text-white hover:bg-cyan-700 hover:translate-y-1 transition duration-200 ease-in-out"
+            startIcon={<Publish />}
             style={{ textTransform: "none" }}
-            variant="text"
-            onClick={() => setReadOnly(true)}
-            startIcon={<MenuBook />}
           >
-            {article ? "Read" : "Preview"}
-          </Button>
-          <Button
-            className={`rounded-none px-4 ${
-              readOnly ? "text-gray-500" : "bg-white text-black"
-            }`}
-            style={{ textTransform: "none" }}
-            onClick={() => setReadOnly(false)}
-            startIcon={<Edit />}
-          >
-            {article ? "Edit" : "Write"}
+            {article ? "Save" : "Publish"}
           </Button>
         </div>
-        <div className="flex-1"></div>
-        {article && <HistoryButton {...article} />}{" "}
-        <div className="flex-1 md:flex-none md:w-8"></div>
-        <Button
-          onClick={handleSave}
-          variant="outlined"
-          className="bg-cyan-600 text-white hover:bg-cyan-700 hover:translate-y-1 transition duration-200 ease-in-out"
-          startIcon={<Publish />}
-          style={{ textTransform: "none" }}
-        >
-          {article ? "Save" : "Publish"}
-        </Button>
+        <DynamicRQ
+          key={readOnly ? "readOnly" : "editable"}
+          forwardedRef={quillRef}
+          className="flex flex-col flex-1"
+          value={value}
+          onChange={onChange}
+          modules={modules}
+          formats={[...defaultQuillFormats, "ref-super", "ref-link"]}
+          readOnly={readOnly}
+          theme={readOnly ? "bubble" : "snow"}
+        />
       </div>
-      <DynamicRQ
-        key={readOnly ? "readOnly" : "editable"}
-        forwardedRef={quillRef}
-        className="flex flex-col flex-1"
-        value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={[...defaultQuillFormats, "ref-super", "ref-link"]}
-        readOnly={readOnly}
-        theme={readOnly ? "bubble" : "snow"}
-      />
-      {/* <button onClick={handleSave}>Save</button> */}
       <Footnotes
         footnotes={footnotes}
         onDelete={readOnly ? undefined : handleDeleteFootnote}

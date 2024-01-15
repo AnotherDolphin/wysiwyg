@@ -31,10 +31,9 @@ export async function POST(request: Request) {
 
 // get the user's email from the token
 export async function GET(request: Request) {
-  const { token } = await request.json()
-  if (!token) {
-    return new Response(`Unauthorized`, { status: 401 })
-  }
+  const authHeader = request.headers.get("Authorization")
+  if (!authHeader) return new Response(`Unauthorized`, { status: 401 })
+  const token = authHeader.replace("Bearer ", "")
 
   const { email } = jwt.verify(token, "secret") as { email: string }
 

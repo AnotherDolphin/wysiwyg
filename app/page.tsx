@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="bg- w-content flex flex-col flex-1">
       <div className="flex flex-col md:flex-row flex-1 p-[10%] gap-[10vh]">
-        <Link
+        <a
           href="/articles/author"
           className="rounded-3xl shadow-xl bg-cyan-600 flex-1 flex flex-col cursor-pointer
         hover:bg-cyan-700 transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110"
@@ -18,7 +18,7 @@ export default function Home() {
           <p className="text-gray-200 text-md md:text-lg m-auto">
             Edit the Web Inform the world
           </p>
-        </Link>
+        </a>
         <Link
           href="/articles"
           className="rounded-3xl shadow-xl bg-cyan-600 flex-1 flex flex-col cursor-pointer

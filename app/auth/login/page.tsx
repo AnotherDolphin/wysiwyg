@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { Button, CircularProgress, TextField } from "@mui/material"
 import Link from "next/link"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 export default function Page() {
   const router = useRouter()
@@ -26,13 +28,18 @@ export default function Page() {
       })
       if (!response.ok) {
         console.error(`Error: ${response.status} - ${response.statusText}`)
+        toast.error("Failed to login. Please check your credentials.")
+
         return
       }
       const { token } = await response.json()
       console.log(`User logged in successfully`, token)
       localStorage.setItem("token", token)
-      router.push(`/`)
+      // router.push(`/`)
+      document.location.href = "/"
     } catch (error) {
+      toast.error("Failed to login. Please check your credentials.")
+
       console.error("Error:", error)
     } finally {
       setLoading(false)
@@ -46,6 +53,8 @@ export default function Page() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col w-full items-center">
+      <ToastContainer />
+
       {email && (
         <div className="flex flex-col p-2 mb-4">
           <p>
@@ -84,12 +93,12 @@ export default function Page() {
         disabled={loading}
       >
         {loading ? (
-          <CircularProgress size={24} className="text-[#007f80]" />
+          <CircularProgress size={24} className="text-[#fff]" />
         ) : (
           "Login"
         )}
       </Button>
-      <p>
+      <p className="text-center">
         Don't have an account?
         <Link href="/auth/register" className="text-[#007f80]">
           &nbsp;Register

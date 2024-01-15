@@ -3,6 +3,7 @@ import Link from "next/link"
 import { FC } from "react"
 import revalidateArticles from "../utils/server-actions"
 import { LibraryBooks } from "@mui/icons-material"
+import cheerio, { load } from 'cheerio';
 
 export interface IArticle {
   _id: number
@@ -76,21 +77,29 @@ const ArticleCard: FC<ArticleCardProps> = ({ article }) => {
   const firstParagraphMatch = article.content?.match(/<p>(.*?)<\/p>/)
   const firstParagraph = firstParagraphMatch ? firstParagraphMatch[1] : ""
 
-  // Get the first 100 characters of the first paragraph
-  const previewText = firstParagraph.slice(0, 100)
+  const stripTags = (html: string) => {
+    const $ = load(html);
+    return $.text();
+  };
 
-  // Add an ellipsis if the text was truncated
+  const previewText = firstParagraph.slice(0, 100)
+  const title = article.title ? article.title : "Untitled"
+
   const displayText =
-    firstParagraph.length > 100 ? `${previewText}...` : previewText
+    firstParagraph.length > 150 ? `${previewText}...` : previewText
+
+  const displayTitle =
+    title.length > 50
+      ? `${title.slice(0, 50)}...`
+      : title
 
   // Format the last update time
-  const date = new Date(article.updatedAt)
-    .toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "2-digit",
-    })
-    // .replace(",", "")
+  const date = new Date(article.updatedAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "2-digit",
+  })
+  // .replace(",", "")
 
   return (
     <Link
@@ -100,8 +109,14 @@ const ArticleCard: FC<ArticleCardProps> = ({ article }) => {
       "
     >
       {/* <div className=""> */}
-      <h2 className="text-xl font-bold">{article.title ?? "Title"}</h2>
-      <p className="text-gray-600 flex-1">{displayText}</p>
+      <h2
+        className="text-xl font-bold"
+        dangerouslySetInnerHTML={{ __html: stripTags(displayTitle) }}
+      ></h2>
+      <p
+        className="text-gray-600 flex-1"
+        dangerouslySetInnerHTML={{ __html: stripTags(displayText) }}
+      ></p>
       <p className="text-xs text-gray-400 self-end">updated: {date}</p>
       {/* </div> */}
     </Link>
