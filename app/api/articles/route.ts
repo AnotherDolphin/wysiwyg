@@ -55,13 +55,17 @@ export async function POST(request: Request) {
   const article = {
     ...data,
     title: truncatedTitle,
+    // refrences: data.references,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     author: email,
   }
 
+  
+  
   // Insert the article document into the collection
   await articlesCollection.insertOne(article)
+  console.log("posted article", article);
 
   return new Response(`Article ${data.title} created`, {
     status: 201,
