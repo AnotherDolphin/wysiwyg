@@ -95,6 +95,8 @@ const modules: StringMap = {
 }
 
 const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
+  console.log(article);
+  
   const router = useRouter()
   // router.replace('/',)
   // const router.
@@ -129,13 +131,10 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
         quillRef.current
           .getEditor()
           .on("text-change", function (x, __, source) {
-            console.log(source)
-
             if (source !== "user") return
             editorEl
               .querySelectorAll(`[href="undefined"], [id="undefined"]`)
               ?.forEach((el) => {
-                console.log(el)
                 el.remove()
               })
           })
