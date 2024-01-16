@@ -78,7 +78,7 @@ export async function PUT(request: Request) {
   if (!authHeader) return new Response(`Unauthorized`, { status: 401 })
   const token = authHeader.replace("Bearer ", "")
   const { email } = jwt.verify(token, "secret") as IUser
-  const { id, content } = await request.json()
+  const { id, content, references } = await request.json()
 
   const title = content.match(/<h1>(.*)<\/h1>/)?.[1] ?? "Untitled"
   const truncatedTitle = title.length > 50 ? title.slice(0, 50) + "..." : title
@@ -86,8 +86,6 @@ export async function PUT(request: Request) {
   if (!id) return new Response(`Article id is required`, { status: 400 })
   if (!content)
     return new Response(`Article content is required`, { status: 400 })
-
-  console.log("id", id)
 
   const article = await db
     .collection("articles")
@@ -100,6 +98,7 @@ export async function PUT(request: Request) {
 
   const updatedArticle = {
     ...article,
+    references,
     title: truncatedTitle,
     content,
     updatedAt: date,

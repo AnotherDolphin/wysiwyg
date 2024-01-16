@@ -33,7 +33,7 @@ export default function Page() {
         return
       }
       const { token } = await response.json()
-      console.log(`User logged in successfully`, token)
+      // console.log(`User logged in successfully`, token)
       localStorage.setItem("token", token)
       // router.push(`/`)
       document.location.href = "/"

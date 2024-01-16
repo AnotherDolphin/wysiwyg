@@ -24,7 +24,7 @@ const RegisterForm = () => {
       })
 
       if (response.ok) {
-        console.log(`User ${formData.email} created successfully`)
+        // console.log(`User ${formData.email} created successfully`)
         router.push(`/auth/login?email=${formData.email}`)
         // Handle success (e.g., redirect or show success message)
       } else {
