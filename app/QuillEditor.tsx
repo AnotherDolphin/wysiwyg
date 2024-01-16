@@ -98,7 +98,7 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
   const router = useRouter()
   // router.replace('/',)
   // const router.
-  const [readOnly, setReadOnly] = useState(article ? true : false)
+  const [readOnly, setReadOnly] = useState(true)
   const [value, setValue] = useState(article ? article.content : "")
   const quillRef = useRef<ReactQuill>()
   const [footnotes, setFootnotes] = useState<{ index: number; link: string }[]>(
@@ -121,6 +121,8 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
+    if (!article) setReadOnly(false)
+    if (article) setFootnotes(article.references)
     const check = () => {
       if (quillRef.current) {
         const editorEl = quillRef.current.getEditor().root
@@ -166,12 +168,13 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
     }
     check()
     return () => clearTimeout(timeoutId)
-  }, [quillRef, readOnly, quillRef.current])
+  }, [quillRef, readOnly, quillRef.current, readOnly])
 
   const handleSave = async () => {
     try {
       // Send a POST request to the API route with the article content
       const token = localStorage.getItem("token")
+      console.log(footnotesRef.current);
       await fetch("/api/articles", {
         method: article ? "PUT" : "POST",
         headers: {
@@ -181,6 +184,7 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
         body: JSON.stringify({
           ...(article && { id: article._id }),
           content: value,
+          
           references: footnotesRef.current.map((footnote) => {
             return {
               index: footnote.index,
