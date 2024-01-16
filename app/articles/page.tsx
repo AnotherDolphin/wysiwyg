@@ -46,6 +46,8 @@ async function getArticles() {
 
 export default async function Page() {
   revalidateArticles()
+  if (!process.env.NEXT_PUBLIC_API_URL) return <div>API URL not found</div>
+
   const data = await getArticles()
   // console.log(data);
 

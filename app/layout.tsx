@@ -34,8 +34,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  if (!process.env.NEXT_PUBLIC_API_URL) return <div>API URL not found</div>
-
   return (
     <html lang="en">
       <body className={`${inter.className} min-h-screen`}>
