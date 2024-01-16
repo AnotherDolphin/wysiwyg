@@ -173,7 +173,7 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
     try {
       // Send a POST request to the API route with the article content
       const token = localStorage.getItem("token")
-      console.log(footnotesRef.current);
+      console.log(footnotesRef.current, footnotes);
       await fetch("/api/articles", {
         method: article ? "PUT" : "POST",
         headers: {
