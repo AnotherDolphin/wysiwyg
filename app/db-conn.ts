@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 // Connection URL and database name
-const url = "mongodb://localhost:27017";
+const url = process.env.MONGODB_URI!;
 const dbName = "wysiwyg";
 
 // Create a new MongoClient
