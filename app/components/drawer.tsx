@@ -62,6 +62,11 @@ export default function DrawerNav() {
               <ListItemText primary="Author" />
             </ListItemButton>
           </a>
+          <Link href="/guide">
+            <ListItemButton>
+              <ListItemText primary="User Guide" />
+            </ListItemButton>
+          </Link>
           {/* <div className="h-[50vh]"></div> */}
           {/* <ListItemButton>
             <ListItemText primary="Login" />
