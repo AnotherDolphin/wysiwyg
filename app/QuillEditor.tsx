@@ -95,8 +95,8 @@ const modules: StringMap = {
 }
 
 const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
-  console.log(article);
-  
+  console.log(article)
+
   const router = useRouter()
   // router.replace('/',)
   // const router.
@@ -123,7 +123,7 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
-    if (!article) setReadOnly(false)
+    if (!article && value == "") setReadOnly(false)
     if (article) setFootnotes(article.references)
     const check = () => {
       if (quillRef.current) {
@@ -173,7 +173,7 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
     try {
       // Send a POST request to the API route with the article content
       const token = localStorage.getItem("token")
-      console.log(footnotesRef.current, footnotes);
+      console.log(footnotesRef.current, footnotes)
       await fetch("/api/articles", {
         method: article ? "PUT" : "POST",
         headers: {
@@ -183,7 +183,7 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
         body: JSON.stringify({
           ...(article && { id: article._id }),
           content: value,
-          
+
           references: footnotesRef.current.map((footnote) => {
             return {
               index: footnote.index,
