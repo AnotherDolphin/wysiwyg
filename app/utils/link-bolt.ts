@@ -1,13 +1,15 @@
 import { Quill } from "react-quill"
-
 let Inline = Quill.import("blots/inline")
-let Embed = Quill.import("blots/embed")
 
 interface Params {
   href: string
   id: string
   refurl: string
 }
+
+class SuperBlot extends Inline {}
+SuperBlot.blotName = "ref-super"
+SuperBlot.tagName = "sup"
 
 class LinkBlot extends Inline {
   static create(value: Params) {
@@ -22,42 +24,44 @@ class LinkBlot extends Inline {
     // These are invisible to Parchment so must be static
     // node.setAttribute("target", "_blank")
     node.classList.add("footnote-link")
-    
+
     // delete node
     // node.addEventListener("click", () => {
     //   console.log("clicked")
     //   node.remove()
     // })
 
-    
-
     return node
   }
 
   attach() {
-    super.attach();
+    super.attach()
     if (!this.mounted) {
-      this.mounted = true;
-      this.scroll.domNode.dispatchEvent(new CustomEvent('blot-mounted', {
-      bubbles: true,
-      detail: this
-    }))
+      this.mounted = true
+      this.scroll.domNode.dispatchEvent(
+        new CustomEvent("blot-mounted", {
+          bubbles: true,
+          detail: this,
+        })
+      )
     }
   }
-  
+
   detach() {
     // console.log("detached");
-    this.mounted = false;
-    this.scroll.domNode.dispatchEvent(new CustomEvent('blot-unmounted', {
-      bubbles: true,
-      detail: this
-    }))
+    this.mounted = false
+    this.scroll.domNode.dispatchEvent(
+      new CustomEvent("blot-unmounted", {
+        bubbles: true,
+        detail: this,
+      })
+    )
     super.detach()
   }
 
   static formats(node: HTMLElement) {
     // console.log('formats', node);
-    
+
     // We will only be called with a node already
     // determined to be a Link blot, so we do
     // not need to check ourselves
@@ -83,4 +87,7 @@ class LinkBlot extends Inline {
 LinkBlot.blotName = "ref-link"
 LinkBlot.tagName = "a"
 
-export default LinkBlot
+Quill.register("formats/ref-super", SuperBlot)
+Quill.register("formats/ref-link", LinkBlot)
+
+export { LinkBlot, SuperBlot }

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { Button, CircularProgress, TextField } from "@mui/material"
 import Link from "next/link"
-import { ToastContainer, toast } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
 export default function Page() {
@@ -53,8 +53,6 @@ export default function Page() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col w-full items-center">
-      <ToastContainer />
-
       {email && (
         <div className="flex flex-col p-2 mb-4">
           <p>

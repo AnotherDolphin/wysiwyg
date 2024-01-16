@@ -29,24 +29,28 @@ export interface IArticleWithHistory extends IArticle {
 
 async function getArticles() {
   const { signal } = new AbortController()
-  const res = await fetch("http://localhost:3000/api/articles", {
-    signal,
-  })
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/articles`, {
+      signal,
+    })
 
-  // The return value is *not* serialized
-  // You can return Date, Map, Set, etc.
+    if (!res.ok) {
+      // This will activate the closest `error.js` Error Boundary
+      throw new Error("Failed to fetch articles")
+    }
 
-  if (!res.ok) {
-    // This will activate the closest `error.js` Error Boundary
-    throw new Error("Failed to fetch articles")
+    const data = await res.json()
+
+    return data as IArticle[]
+  } catch (error) {
+    console.error(error)
+    // Handle the error here
   }
-
-  return res.json() as Promise<IArticle[]>
 }
 
 export default async function Page() {
-  revalidateArticles()
   if (!process.env.NEXT_PUBLIC_API_URL) return <div>API URL not found</div>
+  revalidateArticles()
 
   const data = await getArticles()
   // console.log(data);
@@ -62,7 +66,7 @@ export default async function Page() {
         Articles
       </Typography>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {data.map((article) => (
+        {data?.map((article) => (
           <ArticleCard key={article._id} article={article} />
         ))}
       </div>

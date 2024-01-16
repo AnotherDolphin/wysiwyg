@@ -19,18 +19,14 @@ import { ReactQuillProps } from "react-quill"
 import ReactQuill, { Quill } from "react-quill"
 import { Button, Icon, TextField } from "@mui/material"
 import { StringMap } from "quill"
-import LinkBlot from "./utils/link-bolt"
+import { LinkBlot, SuperBlot } from "./utils/link-bolt"
 import { MenuBook, Edit, Publish, History, Book } from "@mui/icons-material"
 import Footnotes from "./components/article/footnotes"
 import { IArticle, IArticleWithHistory } from "./articles/page"
 import revalidateArticles from "./utils/server-actions"
 import HistoryButton from "./components/history-button"
-import Router from "next/router"
+import { toast } from "react-toastify"
 
-let Inline = Quill.import("blots/inline")
-class SuperBlot extends Inline {}
-SuperBlot.blotName = "ref-super"
-SuperBlot.tagName = "sup"
 Quill.register("formats/ref-super", SuperBlot)
 Quill.register("formats/ref-link", LinkBlot)
 
@@ -112,6 +108,19 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
   footnotesRef.current = footnotes
 
   useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token && !readOnly) {
+      toast.error("Account is required to become an editor", {
+        className: "bg-cyan-700",
+        toastId: "login",
+        style: { color: "white" },
+      })
+      router.push("/auth/login")
+    }
+  }, [readOnly])
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
     const check = () => {
       if (quillRef.current) {
         const editorEl = quillRef.current.getEditor().root
@@ -137,7 +146,6 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
 
         editorEl.addEventListener("blot-mounted", (e: CustomEventInit) => {
           const refNode = e.detail.attributes.domNode
-          // console.log(refNode.href);
 
           const index = parseInt(refNode.id.split("-")[1])
           const footnoteLink = refNode.href
@@ -150,17 +158,14 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
           ].sort((a, b) => a.index - b.index)
           setFootnotes(updatedFootnotes)
         })
-        console.log("quillRef.current", quillRef.current)
-
         modules.toolbar.handlers.cite = handleCite.bind(quillRef.current)
-        return
+        return clearTimeout(timeoutId)
       }
-      console.log("quillRef.current", quillRef.current)
       modules.toolbar.handlers.cite = handleCite.bind(quillRef)
-
-      setTimeout(check, 200)
+      timeoutId = setTimeout(check, 200)
     }
     check()
+    return () => clearTimeout(timeoutId)
   }, [quillRef, readOnly, quillRef.current])
 
   const handleSave = async () => {
@@ -224,9 +229,10 @@ const EditorPage = ({ article }: { article?: IArticleWithHistory }) => {
 
     const footnoteLink = prompt("Enter footnote source link:")
     if (!footnoteLink) return
-    const sourceIndex = footnotesRef.current.reduce((max, footnote) => {
-      return footnote.index > max ? footnote.index : max;
-    }, 0) + 1
+    const sourceIndex =
+      footnotesRef.current.reduce((max, footnote) => {
+        return footnote.index > max ? footnote.index : max
+      }, 0) + 1
     const updatedFootnotes = [
       ...footnotesRef.current,
       { index: sourceIndex, link: footnoteLink },

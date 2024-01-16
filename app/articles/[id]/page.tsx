@@ -4,7 +4,7 @@ import EditorPage from "@/app/QuillEditor"
 
 async function getArticle(id: string) {
   const { signal } = new AbortController()
-  const res = await fetch(`http://localhost:3000/api/articles?id=${id}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/articles?id=${id}`, {
     signal,
   })
   const json = await res.json()

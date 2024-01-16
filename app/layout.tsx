@@ -17,6 +17,9 @@ import Head from "next/head"
 import TopNavBar from "./components/top-nav"
 import DrawerNav from "./components/drawer"
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter"
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify"
+
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -44,6 +47,7 @@ export default function RootLayout({
             <TopNavBar />
             <div className="h-4"></div>
             <DrawerNav />
+            <ToastContainer />
             {children}
           </DrawerProvider>
           {/* </AppRouterCacheProvider> */}
